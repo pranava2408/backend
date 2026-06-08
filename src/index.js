@@ -18,4 +18,11 @@ dotenv.config({
 //         console.log("ERROR:",error);
 //     }
 // })();
-connectDB();
+connectDB()
+.then(
+    con
+)
+.error(
+
+)
+;
