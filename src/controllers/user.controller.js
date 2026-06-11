@@ -22,8 +22,8 @@ const registerUser = asyncHandler(async (req, res) => {
     const { fullName, email, username, password } = req.body;
     console.log("email: ", email);
     const arr = [fullName, email, username, password];
-    for (i in arr) {
-        if (i.trim() === "") {
+    for (const i in arr) {
+        if (i?.trim() === "") {
             throw new ApiError(400, "all fields are required!");
         }
     }
@@ -37,19 +37,23 @@ const registerUser = asyncHandler(async (req, res) => {
     // mera naam balla
     console.log(req.files);
     const avatar = req.files?.avatar[0]?.path;
-    const cover = req.files?.coverImage[0]?.path;
+    // const cover = req.files?..path
+    const cover = null;
+    if (req.files && req.files.coverImage) {
+        cover = req.files.coverImage[0]?.path;
+    }
 
     if (!avatar) {
         throw new ApiError(400, "avatar file is required!");
     }
     const avatarLink = await uploadFileOnCloudinary(avatar);
-    const coverLink;
+    let coverLink;
     if (cover) {
         coverLink = await uploadFileOnCloudinary(cover);
     }
 
     const user = await User.create({
-        fullName,
+        fullname: fullName,
         avatar: avatarLink.url,
         coverImage: coverLink ? coverLink.url : "",
         email: email,
@@ -64,10 +68,10 @@ const registerUser = asyncHandler(async (req, res) => {
     );
 
     if (!userCreated) {
-        return new ApiError(500, "something went wrong while registering");
+        throw new ApiError(500, "something went wrong while registering");
     }
     console.log("user succesfully created!!\n");
-    return res.status(201).json(new ApiResponse(200, "user registered succesfully"));
+    return res.status(201).json(new ApiResponse(200, "user registered succesfully",userCreated));
 });
 
 

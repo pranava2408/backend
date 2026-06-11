@@ -1,5 +1,9 @@
 import { v2 as cloudinary } from 'cloudinary';
 import fs from "fs";
+import dotenv from "dotenv";
+dotenv.config({
+    path: './.env'
+});
 
 cloudinary.config({ 
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
@@ -22,6 +26,12 @@ const uploadFileOnCloudinary = async(localFilePath)=>{
         console.log(response);
         return response;
     } catch (error) {
+        // console.log("check the working ",process.env.CLOUDINARY_CLOUD_NAME);
+        console.log("Cloud Name:", process.env.CLOUDINARY_CLOUD_NAME);
+console.log("API Key:", process.env.CLOUDINARY_API_KEY);
+console.log("API Secret:", process.env.CLOUDINARY_API_SECRET);
+        console.log("cloudinary error");
+        console.log(error);
         fs.unlinkSync(localFilePath);
         // we are just removing the locally saved file because the 
         // the upload has failed !!
