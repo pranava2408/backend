@@ -1,7 +1,7 @@
 import { v2 as cloudinary } from 'cloudinary';
 import fs from "fs";
 import dotenv from "dotenv";
-import { ApiError } from './ApiErrors';
+import { ApiError } from './ApiErrors.js';
 dotenv.config({
     path: './.env'
 });
@@ -44,7 +44,8 @@ try {
     const result= await cloudinary.destroy(publicId);
     console.log("image deleted from cloudinary");
 } catch (error) {
-    throw new ApiError(500,"image deletion failed");
+    // throw new ApiError(500,"image deletion failed");
+    console.log("image deletion failed");
 }};
 
 
