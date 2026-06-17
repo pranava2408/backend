@@ -1,6 +1,7 @@
 import { v2 as cloudinary } from 'cloudinary';
 import fs from "fs";
 import dotenv from "dotenv";
+import { ApiError } from './ApiErrors';
 dotenv.config({
     path: './.env'
 });
@@ -38,8 +39,16 @@ console.log("API Secret:", process.env.CLOUDINARY_API_SECRET);
     }
 }
 
+const deleteFileOnCloudinary = async(publicId)=>{
+try {
+    const result= await cloudinary.destroy(publicId);
+    console.log("image deleted from cloudinary");
+} catch (error) {
+    throw new ApiError(500,"image deletion failed");
+}};
 
-export {uploadFileOnCloudinary};
+
+export {uploadFileOnCloudinary , deleteFileOnCloudinary};
 // (async function() {
 
 //     // Configuration

@@ -1,7 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiErrors.js";
 import { User } from "../models/user.model.js"
-import { uploadFileOnCloudinary } from "../utils/cloudinary.js";
+import { deleteFileOnCloudinary, uploadFileOnCloudinary } from "../utils/cloudinary.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt, { decode } from "jsonwebtoken";
@@ -108,7 +108,9 @@ const registerUser = asyncHandler(async (req, res) => {
     const user = await User.create({
         fullname: fullName,
         avatar: avatarLink.url,
+        avatarPublicId: avatarLink.public_id,
         coverImage: coverLink ? coverLink.url : "",
+        coverImagePublicId: coverLink ? coverLink.public_id : "",
         email: email,
         password: password,
         username: username.toLowerCase(),
@@ -253,53 +255,56 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 
 const updateUserAvatar = asyncHandler(async (req, res) => {
     // we need multer to get the link 
-     const path = req.file?.path;
-     if(!path){
-        throw new ApiError(400,"avatar is missing");
-     }
-     const link = await uploadFileOnCloudinary(path);
-     if(!link.url){
-        throw new ApiError(500,"avatar upload failed");
-     }
-     const user = await User.findByIdAndUpdate(req.user?._id, {
-         $set: {
-             avatar: link.url
-         }
-     }, {
-         new: true
-     }).select(
+    const path = req.file?.path;
+    if (!path) {
+        throw new ApiError(400, "avatar is missing");
+    }
+    const link = await uploadFileOnCloudinary(path);
+    if (!link.url) {
+        throw new ApiError(500, "avatar upload failed");
+    }
+    await deleteFileOnCloudinary(res.user?.avatarPublicId);
+    const user = await User.findByIdAndUpdate(req.user?._id, {
+        $set: {
+            avatar: link.url,
+            avatarPublicId: link.public_id
+        }
+    }, {
+        new: true
+    }).select(
         "-password"
-     );
-     return res.status(200).
-         json(
-             new ApiResponse(200, user,"avatar image change succesful")
-     );
+    );
+    return res.status(200).
+        json(
+            new ApiResponse(200, user, "avatar image change succesful")
+        );
 });
 
 
 const updateUserCoverImage = asyncHandler(async (req, res) => {
     // we need multer to get the link 
-     const path = req.file?.path;
-     if(!path){
-        throw new ApiError(400,"cover image is missing");
-     }
-     const link = await uploadFileOnCloudinary(path);
-     if(!link.url){
-        throw new ApiError(500,"cover image upload failed");
-     }
-     const user = await User.findByIdAndUpdate(req.user?._id, {
-         $set: {
-             coverImage: link.url
-         }
-     }, {
-         new: true
-     }).select(
+    const path = req.file?.path;
+    if (!path) {
+        throw new ApiError(400, "cover image is missing");
+    }
+    const link = await uploadFileOnCloudinary(path);
+    if (!link.url) {
+        throw new ApiError(500, "cover image upload failed");
+    }
+    await deleteFileOnCloudinary(res.user?.coverImagePublicId);
+    const user = await User.findByIdAndUpdate(req.user?._id, {
+        $set: {
+            coverImage: link.url
+        }
+    }, {
+        new: true
+    }).select(
         "-password"
-     );
-     return res.status(200).
-         json(
-             new ApiResponse(200, user,"cover image change succesful")
-     );
+    );
+    return res.status(200).
+        json(
+            new ApiResponse(200, user, "cover image change succesful")
+        );
 });
 
 
@@ -307,5 +312,5 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
 export {
     registerUser, loginUser, logoutUser,
     refreshAccessToken, changeCurrentPassword, updateAccountDetails, getCurrentUser
-    ,updateUserAvatar, updateUserCoverImage
+    , updateUserAvatar, updateUserCoverImage
 };
