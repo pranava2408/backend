@@ -52,7 +52,7 @@ router.route("/update-account").patch(
 )
 router.route("/change-avatar").patch(
     verifyJWT,
-    upload.sinele("avatar"),
+    upload.single("avatar"),
     updateUserAvatar
 )
 
